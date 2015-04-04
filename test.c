@@ -39,6 +39,42 @@ test_list_node_new() {
 }
 
 static void
+test_sorted_insert() {
+  // Setup
+  list_t *list = list_new();
+  list->match = &strcmp;
+  list_node_t *a = list_node_new("a");
+  list_node_t *b = list_node_new("b");
+  list_node_t *c = list_node_new("c");
+  list_node_t *d = list_node_new("d");
+  list_node_t *e = list_node_new("e");
+  list_node_t *f = list_node_new("f");
+
+  // c a b d
+  list_insert_sorted(list, f);
+  list_insert_sorted(list, a);
+  list_insert_sorted(list, d);
+  list_insert_sorted(list, e);
+  list_insert_sorted(list, b);
+  assert(list_insert_sorted(list, c) == 0);
+
+  assert(a == list_at(list, 0));
+  assert(b == list_at(list, 1));
+  assert(c == list_at(list, 2));
+  assert(d == list_at(list, 3));
+  assert(e == list_at(list, 4));
+  assert(f == list_at(list, 5));
+  assert(NULL == list_at(list, 6));
+
+  int count = list->len;
+  list_node_t* in = list_insert_sorted(list, b);
+  assert((int) b == (int) in);
+  assert(list->len == count);
+
+  list_destroy(list);
+}
+
+static void
 test_list_rpush() {
   // Setup
   list_t *list = list_new();
@@ -352,6 +388,7 @@ main(void){
   test(list_lpop);
   test(list_destroy);
   test(list_iterator_t);
+  test(sorted_insert);
   puts("... \x1b[32m100%\x1b[0m\n");
   return 0;
 }

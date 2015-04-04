@@ -3,6 +3,7 @@
 // list.c
 //
 // Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
+// Copyright (c) 2015 Robert Schilling <rschilling@student.tugraz.at>
 //
 
 #include "list.h"
@@ -65,6 +66,56 @@ list_rpush(list_t *self, list_node_t *node) {
 
   ++self->len;
   return node;
+}
+
+/*
+ * Inserts a new node in a sorted manner
+ * and return 0 if the element is not yet in the list or on failure.
+ * 1 if the the node is already in the list.
+ */
+list_node_t*
+list_insert_sorted(list_t *self, list_node_t *node) {
+  if(!node) return NULL;
+
+  if (self->len) {
+    list_node_t* list_node;
+    int comp = self->match(node->val, self->head);
+    list_node = self->head;
+
+    do {
+      comp = self->match(node->val, list_node->val);
+
+      if(comp < 0) {
+        if(list_node->prev) {
+          // Insert in the middle
+          list_node->prev->next = node;
+          node->prev = list_node->prev;
+          list_node->prev = node;
+          node->next = list_node;
+        }
+        else {
+          list_node->prev = node;
+          node->next = list_node;
+          self->head = node;
+        }
+        ++self->len;
+        return NULL;
+      } else if(comp == 0) {
+        return list_node;
+      }
+    } while((list_node = list_node->next));
+
+    // Insert at the end
+    self->tail->next = node;
+    node->prev = self->tail;
+    self->tail = node;
+  } else {
+    self->head = self->tail = node;
+    node->prev = node->next = NULL;
+  }
+
+  ++self->len;
+  return NULL;
 }
 
 /*
